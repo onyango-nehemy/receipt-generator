@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addReceipt, getAllReceipts, generateReceipt } = require('../controllers/receiptController');
+const { getAllReceipts, generateReceipt } = require('../controllers/receiptController');
 
 /**
  * @swagger
@@ -39,45 +39,6 @@ const { addReceipt, getAllReceipts, generateReceipt } = require('../controllers/
  *   name: Receipts
  *   description: Receipt management and PDF generation endpoints
  */
-
-/**
- * @swagger
- * /api/receipts:
- *   post:
- *     summary: Create a new receipt record
- *     tags: [Receipts]
- *     description: Saves a receipt record with order ID and receipt URL to the database
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - order_id
- *               - receipt_URL
- *             properties:
- *               order_id:
- *                 type: integer
- *                 description: ID of the order
- *                 example: 123
- *               receipt_URL:
- *                 type: string
- *                 description: Cloudinary URL of the generated receipt PDF
- *                 example: https://res.cloudinary.com/demo/image/upload/receipts/receipt-123.pdf
- *     responses:
- *       201:
- *         description: Receipt created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Receipt'
- *       400:
- *         description: Invalid input data
- *       500:
- *         description: Server error
- */
-router.post('/', addReceipt);
 
 /**
  * @swagger

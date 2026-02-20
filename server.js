@@ -1,8 +1,9 @@
 require('dotenv').config();
-const app=require('./app');
-const PORT=5000;
-const pool=require('./config/db');//integrating database into our server
+const app = require('./app');
+const pool = require('./config/db');
 
-app.listen(PORT,()=>{
-    console.log(`server running successfully on port ${PORT}`);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
