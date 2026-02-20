@@ -69,8 +69,8 @@ const { addOrder, getAllOrders } = require('../controllers/orderController');
  *           format: date-time
  *           description: Order creation timestamp
  *       example:
- *         customer_name: John Doe
- *         customer_email: john.doe@example.com
+ *         customer_name: Nehemiah Onyango
+ *         customer_email: youremail@example.com
  *         items:
  *           - name: Laptop
  *             quantity: 1
