@@ -22,12 +22,12 @@ const { addOrder, getAllOrders } = require('../controllers/orderController');
  *         customer_name:
  *           type: string
  *           description: Name of the customer
- *           example: John Doe
+ *           example: Nehemia Onyango
  *         customer_email:
  *           type: string
  *           format: email
  *           description: Email of the customer
- *           example: john.doe@example.com
+ *           example: youremail@gmail.com
  *         items:
  *           type: array
  *           description: Array of order items
