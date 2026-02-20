@@ -113,11 +113,11 @@ const { addOrder, getAllOrders } = require('../controllers/orderController');
  *             properties:
  *               customer_name:
  *                 type: string
- *                 example: John Doe
+ *                 example: Nehemiah Onyango
  *               customer_email:
  *                 type: string
  *                 format: email
- *                 example: john.doe@example.com
+ *                 example: youremail@example.com
  *               items:
  *                 type: array
  *                 items:
