@@ -17,4 +17,4 @@ pool.connect()
   .catch((err) => {
     console.error('❌ Failed to connect to database:', err);
     process.exit(1); // stop the app if DB connection fails
-  });git
+  })
