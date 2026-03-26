@@ -13,7 +13,21 @@ const setupDatabase = async (pool) => {
       );
     `);
 
-    // Add all missing columns safely
+    // Rename total_price → total_amount if it exists
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_name='orders' AND column_name='total_price'
+        ) THEN
+          ALTER TABLE orders RENAME COLUMN total_price TO total_amount;
+        END IF;
+      END$$;
+    `);
+
+    // Add all other missing columns safely
     await pool.query(`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal DECIMAL(10,2) DEFAULT 0;
