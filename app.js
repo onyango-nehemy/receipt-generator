@@ -34,6 +34,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/', (req, res) => res.redirect('/api-docs'));
 app.use('/api/orders', orderRoutes);
 app.use('/api/receipts', receiptRoutes);
