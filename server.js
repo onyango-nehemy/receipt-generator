@@ -1,9 +1,14 @@
-require('dotenv').config();
+// Only load dotenv locally
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const app = require('./app');
 const pool = require('./config/db');
 
 const PORT = process.env.PORT || 5000;
 
+// Connect to database first
 pool.connect()
   .then(() => {
     console.log('✅ Database connected successfully.');
@@ -11,5 +16,5 @@ pool.connect()
   })
   .catch((err) => {
     console.error('❌ Failed to connect to database:', err);
-    process.exit(1);
-  });
+    process.exit(1); // stop the app if DB connection fails
+  });git
