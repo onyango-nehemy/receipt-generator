@@ -4,12 +4,12 @@ A Node.js/Express API that automatically generates PDF receipts and emails them 
 
 ## Features
 
-- ✅ Create orders via REST API
-- ✅ Auto-generate professional PDF receipts
-- ✅ Email receipts to customers
-- ✅ Cloud storage with Cloudinary
-- ✅ PostgreSQL database
-- ✅ Swagger API documentation
+- Create orders via REST API
+- Auto-generate professional PDF receipts
+- Email receipts to customers
+- Cloud storage with Cloudinary
+- PostgreSQL database
+- Swagger API documentation
 
 ## Tech Stack
 
@@ -61,4 +61,3 @@ Nehemia Onyango
 
 ## License
 
-ISC
