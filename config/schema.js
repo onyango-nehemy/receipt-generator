@@ -1,10 +1,8 @@
-// schema.js
 const setupDatabase = async (pool) => {
   try {
     // -------------------------------
     // 1️⃣ Orders Table
     // -------------------------------
-    // Create table if brand new DB
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -13,7 +11,7 @@ const setupDatabase = async (pool) => {
       );
     `);
 
-    // Rename total_price → total_amount if it exists
+    // Rename total_price → total_amount safely using dynamic SQL
     await pool.query(`
       DO $$
       BEGIN
@@ -22,7 +20,7 @@ const setupDatabase = async (pool) => {
           FROM information_schema.columns
           WHERE table_name='orders' AND column_name='total_price'
         ) THEN
-          ALTER TABLE orders RENAME COLUMN total_price TO total_amount;
+          EXECUTE 'ALTER TABLE orders RENAME COLUMN total_price TO total_amount';
         END IF;
       END$$;
     `);
@@ -52,7 +50,7 @@ const setupDatabase = async (pool) => {
     console.log('✅ Database Schema synchronized: Orders and Receipts tables verified.');
   } catch (err) {
     console.error('❌ Schema Sync Error:', err);
-    throw err; // Stop server startup if DB setup fails
+    throw err;
   }
 };
 
