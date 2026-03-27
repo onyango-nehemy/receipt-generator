@@ -2,7 +2,14 @@
 const setupDatabase = async (pool) => {
   try {
     // -------------------------------
-    // 1️⃣ Orders Table (base structure)
+    // 1️⃣ Create Sequence for Receipt Numbers
+    // -------------------------------
+    await pool.query(`
+      CREATE SEQUENCE IF NOT EXISTS receipt_seq START 1;
+    `);
+
+    // -------------------------------
+    // 2️⃣ Orders Table (base structure)
     // -------------------------------
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -13,7 +20,7 @@ const setupDatabase = async (pool) => {
     `);
 
     // -------------------------------
-    // 2️⃣ Neutralize legacy total_price constraint
+    // 3️⃣ Neutralize legacy total_price constraint
     // -------------------------------
     await pool.query(`
       DO $$
@@ -41,7 +48,7 @@ const setupDatabase = async (pool) => {
     `);
 
     // -------------------------------
-    // 3️⃣ Add missing columns safely
+    // 4️⃣ Add missing columns to orders safely
     // -------------------------------
     await pool.query(`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
@@ -53,7 +60,7 @@ const setupDatabase = async (pool) => {
     `);
 
     // -------------------------------
-    // 4️⃣ Receipts Table
+    // 5️⃣ Receipts Table (base structure)
     // -------------------------------
     await pool.query(`
       CREATE TABLE IF NOT EXISTS receipts (
@@ -62,6 +69,35 @@ const setupDatabase = async (pool) => {
         receipt_url TEXT NOT NULL,
         generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // -------------------------------
+    // 6️⃣ Add missing columns to receipts safely
+    // -------------------------------
+    await pool.query(`
+      ALTER TABLE receipts ADD COLUMN IF NOT EXISTS receipt_number VARCHAR(50);
+    `);
+
+    // Backfill any existing NULLs in receipt_number
+    await pool.query(`
+      UPDATE receipts
+      SET receipt_number = concat('RCP-', id, '-', order_id)
+      WHERE receipt_number IS NULL;
+    `);
+
+    // Now apply NOT NULL constraint safely
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='receipts'
+            AND column_name='receipt_number'
+            AND is_nullable = 'YES'
+        ) THEN
+          EXECUTE 'ALTER TABLE receipts ALTER COLUMN receipt_number SET NOT NULL';
+        END IF;
+      END$$;
     `);
 
     console.log('✅ Database Schema synchronized: Orders and Receipts tables verified.');
