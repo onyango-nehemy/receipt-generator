@@ -2,7 +2,7 @@
 const setupDatabase = async (pool) => {
   try {
     // -------------------------------
-    // 1️⃣ Orders Table
+    // 1️⃣ Orders Table (base structure)
     // -------------------------------
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -12,10 +12,22 @@ const setupDatabase = async (pool) => {
       );
     `);
 
-    // Rename total_price -> total_amount safely
+    // -------------------------------
+    // 2️⃣ Neutralize legacy total_price constraint
+    // -------------------------------
     await pool.query(`
       DO $$
       BEGIN
+        -- Drop NOT NULL and set default on total_price if it still exists
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='orders' AND column_name='total_price'
+        ) THEN
+          EXECUTE 'ALTER TABLE orders ALTER COLUMN total_price DROP NOT NULL';
+          EXECUTE 'ALTER TABLE orders ALTER COLUMN total_price SET DEFAULT 0';
+        END IF;
+
+        -- Rename total_price -> total_amount if rename hasn't happened yet
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_name='orders' AND column_name='total_price'
@@ -28,7 +40,9 @@ const setupDatabase = async (pool) => {
       END$$;
     `);
 
-    // Add missing columns safely
+    // -------------------------------
+    // 3️⃣ Add missing columns safely
+    // -------------------------------
     await pool.query(`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal DECIMAL(10,2) DEFAULT 0;
@@ -39,7 +53,7 @@ const setupDatabase = async (pool) => {
     `);
 
     // -------------------------------
-    // 2️⃣ Receipts Table
+    // 4️⃣ Receipts Table
     // -------------------------------
     await pool.query(`
       CREATE TABLE IF NOT EXISTS receipts (
