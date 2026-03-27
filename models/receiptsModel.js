@@ -1,13 +1,16 @@
 const pool = require('../config/db');
 
-const saveReceipt = async (order_id, receipt_url) => {
-    const query = `
-        INSERT INTO receipts (order_id, receipt_url)
-        VALUES ($1, $2)
-        RETURNING *
-    `;
-
-    const result = await pool.query(query, [order_id, receipt_url]);
+const saveReceipt = async (orderId, receiptUrl, receiptNumber) => {
+    const result = await pool.query(
+        `INSERT INTO receipts (order_id, receipt_number, receipt_url)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (order_id) DO UPDATE
+           SET receipt_url = $3,
+               receipt_number = $2,
+               generated_at = NOW()
+         RETURNING *`,
+        [orderId, receiptNumber, receiptUrl]
+    );
     return result.rows[0];
 };
 

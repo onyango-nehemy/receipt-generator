@@ -14,7 +14,7 @@ exports.generateReceipt = async (req, res) => {
 
         const orderQuery = `
             SELECT
-                o.order_id,
+                o.id AS order_id,
                 o.customer_name,
                 o.customer_email,
                 o.items,
@@ -24,7 +24,7 @@ exports.generateReceipt = async (req, res) => {
                 o.payment_method,
                 o.order_datetime
             FROM orders o
-            WHERE o.order_id = $1
+            WHERE o.id = $1
         `;
 
         const result = await pool.query(orderQuery, [orderId]);
@@ -64,19 +64,25 @@ exports.generateReceipt = async (req, res) => {
         }
 
         const receiptUrl = cloudinaryUrl || `/receipts/${filename}`;
+
+        // ✅ Generate receipt_number before inserting
+        const receiptNumber = `RCP-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(orderId).padStart(4,'0')}`;
+
         await pool.query(
-            `INSERT INTO receipts (order_id, receipt_url)
-             VALUES ($1, $2)
-             ON CONFLICT (order_id) DO UPDATE SET receipt_url = $2, generated_at = NOW()
+            `INSERT INTO receipts (order_id, receipt_number, receipt_url)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (order_id) DO UPDATE 
+               SET receipt_url = $3,
+                   receipt_number = $2,
+                   generated_at = NOW()
              RETURNING *`,
-            [orderId, receiptUrl]
+            [orderId, receiptNumber, receiptUrl]
         );
 
         res.download(filePath, `receipt_${orderId}.pdf`, (err) => {
             if (err) {
                 console.error('Error sending file:', err);
             }
-
             if (cloudinaryUrl && fs.existsSync(filePath)) {
                 try {
                     fs.unlinkSync(filePath);
@@ -87,7 +93,7 @@ exports.generateReceipt = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error generating receipt:', error);
+        console.error('❌ generateReceipt error:', error.message);
 
         if (filePath && fs.existsSync(filePath)) {
             try {
@@ -97,7 +103,7 @@ exports.generateReceipt = async (req, res) => {
             }
         }
 
-        res.status(500).json({ error: 'Failed to generate receipt' });
+        return res.status(500).json({ error: error.message });
     }
 };
 

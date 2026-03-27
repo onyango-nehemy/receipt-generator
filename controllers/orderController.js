@@ -37,19 +37,23 @@ exports.addOrder = async (req, res) => {
         }
 
         const receiptUrl = cloudinaryUrl || `/receipts/${filename}`;
-        await saveReceipt(order.order_id, receiptUrl);
+
+        // ✅ Generate receipt_number before saving
+        const receiptNumber = `RCP-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(order.order_id).padStart(4,'0')}`;
+        await saveReceipt(order.order_id, receiptUrl, receiptNumber);
 
         if (cloudinaryUrl && fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
 
-        res.status(201).json(order);
+        return res.status(201).json(order);
 
     } catch (error) {
+        console.error('❌ addOrder error:', error.message);
         if (filePath && fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 };
 
