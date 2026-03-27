@@ -1,16 +1,11 @@
-// schema.js
 const setupDatabase = async (pool) => {
   try {
-    // -------------------------------
-    // 1️⃣ Create Sequence for Receipt Numbers
-    // -------------------------------
+    // 1️⃣ Sequence for receipt numbers
     await pool.query(`
       CREATE SEQUENCE IF NOT EXISTS receipt_seq START 1;
     `);
 
-    // -------------------------------
-    // 2️⃣ Orders Table (base structure)
-    // -------------------------------
+    // 2️⃣ Orders table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
@@ -19,13 +14,10 @@ const setupDatabase = async (pool) => {
       );
     `);
 
-    // -------------------------------
     // 3️⃣ Neutralize legacy total_price constraint
-    // -------------------------------
     await pool.query(`
       DO $$
       BEGIN
-        -- Drop NOT NULL and set default on total_price if it still exists
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_name='orders' AND column_name='total_price'
@@ -34,7 +26,6 @@ const setupDatabase = async (pool) => {
           EXECUTE 'ALTER TABLE orders ALTER COLUMN total_price SET DEFAULT 0';
         END IF;
 
-        -- Rename total_price -> total_amount if rename hasn't happened yet
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_name='orders' AND column_name='total_price'
@@ -47,9 +38,7 @@ const setupDatabase = async (pool) => {
       END$$;
     `);
 
-    // -------------------------------
-    // 4️⃣ Add missing columns to orders safely
-    // -------------------------------
+    // 4️⃣ Add missing columns to orders
     await pool.query(`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal DECIMAL(10,2) DEFAULT 0;
@@ -59,33 +48,42 @@ const setupDatabase = async (pool) => {
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
     `);
 
-    // -------------------------------
-    // 5️⃣ Receipts Table (base structure)
-    // -------------------------------
+    // 5️⃣ Receipts table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS receipts (
         id SERIAL PRIMARY KEY,
-        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+        order_id INTEGER UNIQUE REFERENCES orders(id) ON DELETE CASCADE,
+        receipt_number VARCHAR(50),
         receipt_url TEXT NOT NULL,
         generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    // -------------------------------
-    // 6️⃣ Add missing columns to receipts safely
-    // -------------------------------
+    // 6️⃣ Add UNIQUE constraint on order_id for existing tables
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'receipts_order_id_key'
+        ) THEN
+          EXECUTE 'ALTER TABLE receipts ADD CONSTRAINT receipts_order_id_key UNIQUE (order_id)';
+        END IF;
+      END$$;
+    `);
+
+    // 7️⃣ Add receipt_number column if missing and backfill NULLs
     await pool.query(`
       ALTER TABLE receipts ADD COLUMN IF NOT EXISTS receipt_number VARCHAR(50);
     `);
 
-    // Backfill any existing NULLs in receipt_number
     await pool.query(`
       UPDATE receipts
       SET receipt_number = concat('RCP-', id, '-', order_id)
       WHERE receipt_number IS NULL;
     `);
 
-    // Now apply NOT NULL constraint safely
+    // 8️⃣ Apply NOT NULL on receipt_number after backfill
     await pool.query(`
       DO $$
       BEGIN

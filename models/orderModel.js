@@ -14,7 +14,7 @@ const createOrder = async (order) => {
     const query = `
         INSERT INTO orders (customer_name, customer_email, items, subtotal, discount, total_amount, payment_method)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *
+        RETURNING *, id AS order_id
     `;
 
     const result = await pool.query(query, [
@@ -31,7 +31,7 @@ const createOrder = async (order) => {
 };
 
 const getOrders = async () => {
-    const result = await pool.query('SELECT * FROM orders ORDER BY order_datetime DESC');
+    const result = await pool.query('SELECT *, id AS order_id FROM orders ORDER BY order_datetime DESC');
     return result.rows;
 };
 

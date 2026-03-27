@@ -1,6 +1,10 @@
 const pool = require('../config/db');
 
 const saveReceipt = async (orderId, receiptUrl, receiptNumber) => {
+    // Guard: if orderId is undefined, fail fast with a clear error
+    if (!orderId) throw new Error('saveReceipt called with undefined orderId');
+    if (!receiptNumber) throw new Error('saveReceipt called with undefined receiptNumber');
+
     const result = await pool.query(
         `INSERT INTO receipts (order_id, receipt_number, receipt_url)
          VALUES ($1, $2, $3)
