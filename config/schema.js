@@ -1,3 +1,4 @@
+// schema.js
 const setupDatabase = async (pool) => {
   try {
     // -------------------------------
@@ -11,21 +12,23 @@ const setupDatabase = async (pool) => {
       );
     `);
 
-    // Rename total_price → total_amount safely using dynamic SQL
+    // Rename total_price -> total_amount safely
     await pool.query(`
       DO $$
       BEGIN
         IF EXISTS (
-          SELECT 1
-          FROM information_schema.columns
+          SELECT 1 FROM information_schema.columns
           WHERE table_name='orders' AND column_name='total_price'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='orders' AND column_name='total_amount'
         ) THEN
           EXECUTE 'ALTER TABLE orders RENAME COLUMN total_price TO total_amount';
         END IF;
       END$$;
     `);
 
-    // Add all other missing columns safely
+    // Add missing columns safely
     await pool.query(`
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal DECIMAL(10,2) DEFAULT 0;
