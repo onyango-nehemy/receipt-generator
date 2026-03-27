@@ -24,11 +24,11 @@ const sendReceiptEmail = async (toEmail, customerName, orderData, pdfPath) => {
 
         if (error) throw new Error(error.message);
 
-        console.log('✅ Email sent to:', toEmail);
+        console.log('Email sent to:', toEmail);
         return data;
 
     } catch (error) {
-        console.error('❌ Email error:', error.message);
+        console.error('Email error:', error.message);
         throw error;
     }
 };

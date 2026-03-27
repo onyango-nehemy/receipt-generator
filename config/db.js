@@ -5,7 +5,7 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-pool.on('connect', () => console.log('✅ Database connected successfully.'));
-pool.on('error', (err) => console.error('❌ Database connection error:', err));
+pool.on('connect', () => console.log('Database connected successfully.'));
+pool.on('error', (err) => console.error('Database connection error:', err));
 
 module.exports = pool;

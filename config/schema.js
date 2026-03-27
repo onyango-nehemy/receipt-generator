@@ -98,9 +98,9 @@ const setupDatabase = async (pool) => {
       END$$;
     `);
 
-    console.log('✅ Database Schema synchronized: Orders and Receipts tables verified.');
+    console.log('Database Schema synchronized: Orders and Receipts tables verified.');
   } catch (err) {
-    console.error('❌ Schema Sync Error:', err);
+    console.error('Schema Sync Error:', err);
     throw err;
   }
 };

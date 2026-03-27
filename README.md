@@ -19,12 +19,13 @@ A Node.js/Express API that automatically generates PDF receipts and emails them 
 - Nodemailer
 - Cloudinary
 - Swagger
+-Resend API KEYS
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/receipt-generator.git
+https://github.com/onyango-nehemy/receipt-generator.git
 cd receipt-generator
 ```
 
@@ -60,4 +61,5 @@ Visit `/api-docs` for Swagger documentation
 Nehemia Onyango
 
 ## License
-
+#LIVE LINK
+-https://receipt-generator-api-0cpr.onrender.com

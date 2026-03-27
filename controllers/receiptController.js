@@ -65,7 +65,7 @@ exports.generateReceipt = async (req, res) => {
 
         const receiptUrl = cloudinaryUrl || `/receipts/${filename}`;
 
-        // ✅ Generate receipt_number before inserting
+        // Generate receipt_number before inserting
         const receiptNumber = `RCP-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(orderId).padStart(4,'0')}`;
 
         await pool.query(
@@ -93,7 +93,7 @@ exports.generateReceipt = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ generateReceipt error:', error.message);
+        console.error('generateReceipt error:', error.message);
 
         if (filePath && fs.existsSync(filePath)) {
             try {
